@@ -8,12 +8,26 @@ div.emails-view {
     align-items: center;
 }
 
+@keyframes archive {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
 div.email-wrapper {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
     border: 1px solid black;
+    animation-name: archive;
+    animation-duration: 2s;
+    animation-fill-mode: forwards;
+    animation-play-state: paused;
 }
 
 div.email-wrapper:hover {

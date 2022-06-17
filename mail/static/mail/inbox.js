@@ -1,8 +1,12 @@
 window.onpopstate = function(event){
-    console.log(event.state.section)
-    load_mailbox(event.state.section)
+    if(event.dataset.section){
+        load_mailbox(event.state.section)
+    } else if(event.dataset.email){
+        renderEmail(event.dataset.email)
+    }
 }
 
+//? --------- WHEN DOM CONTENT IS LOADED ------------
 document.addEventListener('DOMContentLoaded', function() {
     // Use buttons to toggle between views
     document.querySelectorAll(".sections").forEach( button => {
@@ -23,11 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
     load_mailbox("inbox")
 });
 
-
-function compose_email() {
+//? --------- COMPOSE EMAIL ------------
+function compose_email(recipient="", body="", subject="", timestamp="") {
     // Show compose view and hide other views
     document.querySelector('#emails-view').style.display = 'none';
     document.querySelector('#compose-view').style.display = 'block';
+
 
     const sendEmail = event => {
         event.preventDefault()
@@ -55,11 +60,13 @@ function compose_email() {
     document.querySelector("#compose-form").addEventListener("submit", sendEmail)
 
     // Clear out composition fields
-    document.querySelector('#compose-recipients').value = '';
-    document.querySelector('#compose-subject').value = '';
-    document.querySelector('#compose-body').value = '';
+    document.querySelector('#compose-recipients').value = recipient ? recipient: '';
+    document.querySelector('#compose-subject').value = subject ? `Re: ${subject}` : "";
+    document.querySelector('#compose-body').value = recipient && body && timestamp ? `On ${timestamp} ${recipient} wrote: \n ${body} \n -----------\n` : '';
+
 }
 
+//? --------- LOAD MAILBOX ------------
 function load_mailbox(mailbox) {
     const emailsTag = document.querySelector('#emails-view')
 
@@ -85,6 +92,7 @@ function load_mailbox(mailbox) {
                 const sender = document.createElement("p")
                 sender.className = "sender"
                 sender.textContent = email.sender
+                sender.dataset.email = email
                 sender.onclick = () => {
                     history.pushState({section:email.id}, "", `email?id=${email.id}`)
                     if( !email.read ){
@@ -109,7 +117,11 @@ function load_mailbox(mailbox) {
                     archive.className = "archive-icon"
                     archive.src = "https://i.ibb.co/X8KW2Th/archive-1.png"
                     archive.style.width = "25px"
-                    archive.onclick = () => handleArchive(email)
+                    archive.onclick = event => {
+                        const element = event.target
+                        element.parentElement.style.animationPlayState = "running"
+                        element.parentElement.addEventListener('animationend', () => handleArchive(email))
+                    }
                     archive.alt = "Archive"
                     mainWrapper.appendChild(archive)
                 }
@@ -119,8 +131,9 @@ function load_mailbox(mailbox) {
     });
 }
 
-function handleArchive(email) {
-    fetch(`/emails/${email.id}`, {
+//? --------- HANDLE ARCHIVE ------------
+async function handleArchive(email) {
+    await fetch(`/emails/${email.id}`, {
         method: 'PUT',
         body: JSON.stringify({
             archived: email.archived ? false : true
@@ -129,6 +142,7 @@ function handleArchive(email) {
     load_mailbox("inbox")
 }
 
+//? --------- HANDLE READ ------------
 function handleRead(email){
     fetch(`/emails/${email.id}`, {
         method: 'PUT',
@@ -138,6 +152,7 @@ function handleRead(email){
     })
 }
 
+//? --------- RENDER EMAIL ------------
 function renderEmail(email) {
     // Clean section first
     const emailsTag = document.querySelector('#emails-view')
@@ -173,6 +188,9 @@ function renderEmail(email) {
     const reply = document.createElement("button")
     reply.textContent = "Reply"
     reply.classList = "btn btn-sm btn-outline-primary"
+    reply.onclick = () => {
+        compose_email(email.sender, email.body, email.subject, email.timestamp)
+    }
     const hr = document.createElement("hr")
     const message = document.createElement("p")
     message.textContent = email.body
