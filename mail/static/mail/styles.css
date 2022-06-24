@@ -25,7 +25,7 @@ div.email-wrapper {
     justify-content: space-between;
     border: 1px solid black;
     animation-name: archive;
-    animation-duration: 2s;
+    animation-duration: 0.8s;
     animation-fill-mode: forwards;
     animation-play-state: paused;
 }
@@ -38,17 +38,15 @@ div.email-wrapper div.sender-subject-wrapper {
     cursor: pointer;
 }
 
-div.email-wrapper div.sender-subject-wrapper p{
-    padding: 0 10px;
+div.email-wrapper div.sender-subject-wrapper p,
+div.email-wrapper p.timestamp {
+    padding: 8px 10px;
+    margin: 0;
 }
 
 div.email-wrapper div.sender-subject-wrapper p span {
     font-weight: bold;
     padding-left: 15px;
-}
-
-div.email-wrapper p.timestamp {
-    padding-right: 15px;
 }
 
 div.email-details-wrapper p.title{
@@ -61,7 +59,7 @@ div.email-details-wrapper p.title span {
 }
 
 div.unread {
-    background-color: lightgrey;
+    background-color: rgb(239, 238, 238);
 }
 
 img.archive-icon {

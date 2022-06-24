@@ -1,8 +1,6 @@
 window.onpopstate = function(event){
     if(event.dataset.section){
         load_mailbox(event.state.section)
-    } else if(event.dataset.email){
-        renderEmail(event.dataset.email)
     }
 }
 
@@ -61,9 +59,11 @@ function compose_email(recipient="", body="", subject="", timestamp="") {
 
     // Clear out composition fields
     document.querySelector('#compose-recipients').value = recipient ? recipient: '';
-    document.querySelector('#compose-subject').value = subject ? `Re: ${subject}` : "";
-    document.querySelector('#compose-body').value = recipient && body && timestamp ? `On ${timestamp} ${recipient} wrote: \n ${body} \n -----------\n` : '';
-
+    if(subject && subject.includes("Re:")){
+        replySubjec = subject.replace("Re:", "")
+    }
+    document.querySelector('#compose-subject').value = subject ? `Re: ${replySubjec}` : '';
+    document.querySelector('#compose-body').value = recipient && body && timestamp ? `On ${timestamp} ${recipient} wrote: \n ${body} \n ________________________\n` : '';
 }
 
 //? --------- LOAD MAILBOX ------------
@@ -89,6 +89,7 @@ function load_mailbox(mailbox) {
                 }
                 const subWrapper = document.createElement("div")
                 subWrapper.className = "sender-subject-wrapper"
+                subWrapper.style.alignItems = "center"
                 const sender = document.createElement("p")
                 sender.className = "sender"
                 sender.textContent = email.sender
@@ -103,6 +104,9 @@ function load_mailbox(mailbox) {
                 const subject = document.createElement("span")
                 subject.className = "subject"
                 subject.textContent = email.subject
+                const dateArchive = document.createElement('div')
+                dateArchive.style.display = 'flex'
+                dateArchive.style.alignItems = "center"
                 const timestamp = document.createElement("p")
                 timestamp.className = "timestamp"
                 timestamp.textContent = email.timestamp
@@ -110,21 +114,22 @@ function load_mailbox(mailbox) {
                 sender.appendChild(subject)
                 subWrapper.appendChild(sender)
                 mainWrapper.appendChild(subWrapper)
-                mainWrapper.appendChild(timestamp)
+                dateArchive.appendChild(timestamp)
                 if( mailbox !== "sent" ){
                     const archive = document.createElement("img")
                     archive.type = "icon"
                     archive.className = "archive-icon"
                     archive.src = "https://i.ibb.co/X8KW2Th/archive-1.png"
                     archive.style.width = "25px"
+                    archive.style.height = "25px"
                     archive.onclick = event => {
                         const element = event.target
-                        element.parentElement.style.animationPlayState = "running"
-                        element.parentElement.addEventListener('animationend', () => handleArchive(email))
+                        element.parentElement.parentElement.style.animationPlayState = "running"
+                        element.parentElement.parentElement.addEventListener('animationend', () => handleArchive(email))
                     }
-                    archive.alt = "Archive"
-                    mainWrapper.appendChild(archive)
+                    dateArchive.appendChild(archive)
                 }
+                mainWrapper.appendChild(dateArchive)
                 emailsTag.appendChild(mainWrapper)
                 })
             }
@@ -192,14 +197,25 @@ function renderEmail(email) {
         compose_email(email.sender, email.body, email.subject, email.timestamp)
     }
     const hr = document.createElement("hr")
-    const message = document.createElement("p")
-    message.textContent = email.body
+    
     mainWrapper.appendChild(from)
     mainWrapper.appendChild(to)
     mainWrapper.appendChild(subject)
     mainWrapper.appendChild(timestamp)
     mainWrapper.appendChild(reply)
     mainWrapper.appendChild(hr)
-    mainWrapper.appendChild(message)
+
+    const lines = email.body.split("\n")
+    if(lines.length > 1){
+        lines.forEach( line => {
+            const newLine = document.createElement("p")
+            newLine.textContent = line
+            mainWrapper.appendChild(newLine)
+        })
+    } else {
+        const message = document.createElement("p")
+        message.textContent =  email.body
+        mainWrapper.appendChild(message)
+    }
     emailsTag.appendChild(mainWrapper)
 }
