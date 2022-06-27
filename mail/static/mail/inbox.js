@@ -61,6 +61,8 @@ function compose_email(recipient="", body="", subject="", timestamp="") {
     document.querySelector('#compose-recipients').value = recipient ? recipient: '';
     if(subject && subject.includes("Re:")){
         replySubjec = subject.replace("Re:", "")
+    } else {
+        replySubjec = subject
     }
     document.querySelector('#compose-subject').value = subject ? `Re: ${replySubjec}` : '';
     document.querySelector('#compose-body').value = recipient && body && timestamp ? `On ${timestamp} ${recipient} wrote: \n ${body} \n ________________________\n` : '';
@@ -119,7 +121,7 @@ function load_mailbox(mailbox) {
                     const archive = document.createElement("img")
                     archive.type = "icon"
                     archive.className = "archive-icon"
-                    archive.src = "https://i.ibb.co/X8KW2Th/archive-1.png"
+                    archive.src = mailbox === "archived" ? "https://th.bing.com/th/id/R.fbd6fc2bf57cdba608169268438e4092?rik=%2btRVqDy1PCzU9A&pid=ImgRaw&r=0" : "https://i.ibb.co/X8KW2Th/archive-1.png"
                     archive.style.width = "25px"
                     archive.style.height = "25px"
                     archive.onclick = event => {
